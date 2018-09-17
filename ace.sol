@@ -32,11 +32,34 @@ contract ERC20Interface {
     // Triggered whenever approve(address _spender, uint256 _value) is called.
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
- 
+
+// ----------------------------------------------------------------------------
+// Safe maths
+// ----------------------------------------------------------------------------
+library SafeMath {
+  function add(uint a, uint b) internal pure returns (uint c) {
+    c = a + b;
+    require(c >= a);
+  }
+  function sub(uint a, uint b) internal pure returns (uint c) {
+    require(b <= a);
+    c = a - b;
+  }
+  function mul(uint a, uint b) internal pure returns (uint c) {
+    c = a * b;
+    require(a == 0 || c / a == b);
+  }
+  function div(uint a, uint b) internal pure returns (uint c) {
+    require(b > 0);
+    c = a / b;
+  }
+}
 contract Ace is ERC20Interface {
+    using SafeMath for uint;
     uint256 public constant decimals = 8;
 
     uint256 public constant oneAce = 10**8;
+    uint256 public constant oneEth = 10**18;
 
     string public constant symbol = "ACE";
     string public constant name = "Ace";
@@ -45,12 +68,12 @@ contract Ace is ERC20Interface {
     bool public _selling = true;
     
     // total supply is 10^18 unit, equivalent to 10^10 Ace, 10bln
-    uint256 public _totalSupply = (10 ** 10) * oneAce; 
+    uint256 public _totalSupply = oneAce.mul(10 ** 10); //(10 ** 10) * oneAce;
     
     // _originalBuyPrice = how many ACE unit for 1 ETH 
     // 1 ACE = 0.012 USD with the fixed rate
     // e.g. suppose 1 ETH = 275.52 USD, so _originalBuyPrice = 275.52 / 0.012 * oneAce = 22960 * oneAce = 22960 * 10**8 ACE unit
-    uint256 public _originalBuyPrice = 22960 * oneAce;
+    uint256 public _originalBuyPrice = oneAce.mul(22960); //22960 * oneAce;
 
     // Owner of this contract
     address public owner;
@@ -71,13 +94,13 @@ contract Ace is ERC20Interface {
     uint256 public _icoPercent = 10;
     
     // _icoSupply is the avalable unit. Initially, it is _totalSupply
-    uint256 public _icoSupply = _totalSupply * _icoPercent / 100;
+    uint256 public _icoSupply = _totalSupply.mul(_icoPercent).div(100);
     
     // minimum buy 0.3 ETH, in wei
     uint256 public _minimumBuy = 3 * 10 ** 17;
     
     // maximum buy 25 ETH, in wei
-    uint256 public _maximumBuy = 25 * 10 ** 18;
+    uint256 public _maximumBuy = 25 * oneEth;
 
     // totalTokenSold
     uint256 public totalTokenSold = 0;
@@ -90,7 +113,13 @@ contract Ace is ERC20Interface {
     
     // Triggered whenever burn(uint256 _value) is called. 
     event Burn(address indexed burner, uint256 value);
-    
+    // Triggered whenever turnOnSale()、turnOffSale() is called.
+    event Sale(address indexed safer, bool value);
+    // Triggered whenever turnOnTradable() is called.
+    event Tradable(address indexed safer, bool value);
+    //
+    event ParamConfig(uint256 paramType, uint256 value);
+
     /**
      * Functions with this modifier can only be executed by the owner
      */
@@ -132,7 +161,7 @@ contract Ace is ERC20Interface {
      * Functions with this modifier check the validity of address is not 0
      */
     modifier validAddress {
-        require(0x0 != msg.sender);
+        require(address(0) != msg.sender);
         _;
     }
     
@@ -159,17 +188,16 @@ contract Ace is ERC20Interface {
         validValue
         validInvestor {
         // (ETH from msg.sender in wei) * (how many ACE unit for 1 ETH) / (how many wei for 1 ETH) 
-        uint256 requestedUnits = (msg.value * _originalBuyPrice) / 10**18;
+        //uint256 requestedUnits = (msg.value * _originalBuyPrice) / 10**18;
+        uint256 requestedUnits = msg.value.mul(_originalBuyPrice).div(oneEth);
         require(balances[owner] >= requestedUnits);
         // prepare transfer data
-        balances[owner] -= requestedUnits;
-        balances[msg.sender] += requestedUnits;
-        
+        balances[owner] = balances[owner].sub(requestedUnits);
+        balances[msg.sender] = balances[owner].add(requestedUnits);
         // increase total deposit amount
-        deposit[msg.sender] += msg.value;
-        
+        deposit[msg.sender] = deposit[msg.sender].add(msg.value);
+        totalTokenSold = totalTokenSold.add(requestedUnits);
         // check total and auto turnOffSale
-        totalTokenSold += requestedUnits;
         if (totalTokenSold >= _icoSupply){
             _selling = false;
         }
@@ -201,18 +229,21 @@ contract Ace is ERC20Interface {
     function turnOnSale() onlyOwner 
         public {
         _selling = true;
+        Sale(msg.sender, true);
     }
 
     /// @dev Disables sale
     function turnOffSale() onlyOwner 
         public {
         _selling = false;
+        Sale(msg.sender, false);
     }
     
     function turnOnTradable() 
         public
         onlyOwner{
         tradable = true;
+        Tradable(msg.sender, true);
     }
     
     /// @dev set new icoPercent
@@ -221,7 +252,9 @@ contract Ace is ERC20Interface {
         public 
         onlyOwner {
         _icoPercent = newIcoPercent;
-        _icoSupply = _totalSupply * _icoPercent / 100;
+        //_icoSupply = _totalSupply * _icoPercent / 100;
+        _icoSupply = _totalSupply.mul(_icoPercent).div(100);
+        ParamConfig(1, _icoPercent);
     }
     
     /// @dev set new _minimumBuy
@@ -230,6 +263,7 @@ contract Ace is ERC20Interface {
         public 
         onlyOwner {
         _minimumBuy = newMinimumBuy;
+        ParamConfig(2, _minimumBuy);
     }
     
     /// @dev set new _maximumBuy
@@ -238,6 +272,7 @@ contract Ace is ERC20Interface {
         public 
         onlyOwner {
         _maximumBuy = newMaximumBuy;
+        ParamConfig(3, _maximumBuy);
     }
 
     /// @dev Updates buy price (owner ONLY)
@@ -257,7 +292,9 @@ contract Ace is ERC20Interface {
         // maximumETH = maximumBuy_Ace / _originalBuyPrice = 250,000,00000000 / 22,960,00000000
         // 250,000,00000000 / 22,960,00000000 ~ 10ETH => change to wei
         // so _maximumBuy = (how many wei for 1 ETH) * maximumBuy_Ace / _originalBuyPrice
-        _maximumBuy = (10**18) * 250000 * oneAce /_originalBuyPrice;
+        //_maximumBuy = (10**18) * 250000 * oneAce /_originalBuyPrice;
+        _maximumBuy = oneAce.mul(250000).mul(oneEth).div(_originalBuyPrice) ;
+        ParamConfig(4, _originalBuyPrice);
     }
         
     /// @dev Gets account's balance
@@ -328,9 +365,13 @@ contract Ace is ERC20Interface {
         require(balances[msg.sender] >= _amount);
         require(_amount >= 0);
         require(balances[_to] + _amount > balances[_to]);
+        require(_to != address(0));
 
-        balances[msg.sender] -= _amount;
-        balances[_to] += _amount;
+        /*balances[msg.sender] -= _amount;
+        balances[_to] += _amount;*/
+        balances[msg.sender] = balances[msg.sender].sub(_amount);
+        balances[_to] = balances[_to].add(_amount);
+
         Transfer(msg.sender, _to, _amount);
         return true;
     }
@@ -354,10 +395,16 @@ contract Ace is ERC20Interface {
         require(allowed[_from][msg.sender] >= _amount);
         require(_amount > 0);
         require(balances[_to] + _amount > balances[_to]);
-        
-        balances[_from] -= _amount;
+        require(_to != address(0));
+
+        /*balances[_from] -= _amount;
         allowed[_from][msg.sender] -= _amount;
-        balances[_to] += _amount;
+        balances[_to] += _amount;*/
+
+        balances[_from] = balances[_from].sub(_amount);
+        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);
+        balances[_to] = balances[_to].add(_amount);
+
         Transfer(_from, _to, _amount);
         return true;
     }
@@ -372,6 +419,7 @@ contract Ace is ERC20Interface {
         // not allowed to overwrite unless the _amount is 0 to prevent the race condition attack
         // caller must first reduce the spender's allowance to 0 and set the desired value afterwards
         require((_amount == 0) || (allowed[msg.sender][_spender] == 0));
+        require(_spender != address(0));
         allowed[msg.sender][_spender] = _amount;
         Approval(msg.sender, _spender, _amount);
         return true;
@@ -408,9 +456,12 @@ contract Ace is ERC20Interface {
         onlyOwner {
         require(_value > 0 && _value <= _maximumBurn);
         require(balances[msg.sender] >= _value);
-        balances[msg.sender] -= _value;
-        balances[0x0] += _value;
-        Transfer(msg.sender, 0x0, _value);
+        require(_totalSupply >= _value);
+        //balances[msg.sender] -= _value;
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        _totalSupply = _totalSupply.sub(_value);
+        //balances[0x0] += _value;
+        //Transfer(msg.sender, 0x0, _value);
         Burn(msg.sender, _value);
     }
 }
