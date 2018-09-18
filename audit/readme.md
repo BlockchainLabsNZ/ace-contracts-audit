@@ -75,15 +75,21 @@ The audit report is focused on the following key areas - though this is not an e
 
 ### Minor
 - **Recommend using SafeMath** - `Best practice` We recommend using the SafeMath library for calculations to be safe from under and overflows  [View on GitHub](https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues/5)
+  - [ ] Partially fixed
 - **Add a sanity check to TransferFrom for valid addresses** - `Observation` [#L94-L111](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/ERC20.sol#L94-L111]) The `from` and `to` addresses are not checked to see if they are valid addresses, we would recommend checking to make sure they are not `address(0)`  [View on GitHub](https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues/4)
+  - [x] Fixed: [5031f39c6](https://github.com/BlockchainLabsNZ/ace-contracts-audit/commit/5031f39c627ae915afb477a270132ae3aa7d5db4)
 - **Prefer explicit variable types** - `Best practice` We recommend using explicit variable types instead of relying on the default type. For example, prefer using `uint256` instead of `uint`. This makes your intention clear, and it also guards you against a future where the default changes.  [View on GitHub](https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues/2)
+  - [x] Fixed: [5031f39c6](https://github.com/BlockchainLabsNZ/ace-contracts-audit/commit/5031f39c627ae915afb477a270132ae3aa7d5db4)
 - **Upgrade Solidity version** - `Best practice` We recommend using the latest stable version of Solidity. The newer versions of Solidity introduce some new useful features like adding error messages for failing `require` calls, and updating the constructor and event syntax.  [View on GitHub](https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues/1)
+  - [ ] Not fixed
 
 ### Moderate
 - **It is possible to sell more than the ICO Supply** - `Correctness`, Observation` When purchasing tokens, you can purchase more tokens than the `_icoSupply` variable. The purchase which exceeds the supply will trigger the end of the sale, but in the worst case and extra 24.999-ish ETH worth of tokens could be sold over the total intended supply.  [View on GitHub](https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues/3)
+  - [ ] No fix required
 
 ### Major
 - **Burning tokens does not update the totalSupply variable** - `Bug` Burning tokens (using the `burn` method, or using the current `transfer` and `transferFrom`) doesn't update the totalSupply  [View on GitHub](https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues/7)
+  - [x] Fixed: [5031f39c6](https://github.com/BlockchainLabsNZ/ace-contracts-audit/commit/5031f39c627ae915afb477a270132ae3aa7d5db4)
 
 ### Critical
 - None found
@@ -92,6 +98,8 @@ The audit report is focused on the following key areas - though this is not an e
 <br>
 
 ## Observations
+- It's a common practice to add events for setter functions. For example the `turnOnSale` function could emit a `SaleStarted` event
+  - [x] Fixed: [5031f39c6](https://github.com/BlockchainLabsNZ/ace-contracts-audit/commit/5031f39c627ae915afb477a270132ae3aa7d5db4)
 
 <br>
 
