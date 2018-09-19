@@ -100,6 +100,8 @@ The audit report is focused on the following key areas - though this is not an e
 ## Observations
 - It's a common practice to add events for setter functions. For example the `turnOnSale` function could emit a `SaleStarted` event
   - [x] Fixed: [5031f39c6](https://github.com/BlockchainLabsNZ/ace-contracts-audit/commit/5031f39c627ae915afb477a270132ae3aa7d5db4)
+- The `maximumBuy` variable is set to 25 ETH initially, but as soon as the contract is deployed it will be changed. `setBuyPrice` is called in the contract constructor.
+- The `setIcoPercent` function allows the owner to change the ICO Supply at any time, including while the crowdsale is active.
 
 <br>
 
