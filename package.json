@@ -1,0 +1,31 @@
+{
+  "name": "ace-contracts-audit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "truffle": "^4.1.14"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlockchainLabsNZ/ace-contracts-audit.git"
+  },
+  "keywords": [
+    "ace",
+    "token",
+    "audit"
+  ],
+  "author": "Matt Lough & Bruce Li",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BlockchainLabsNZ/ace-contracts-audit/issues"
+  },
+  "homepage": "https://github.com/BlockchainLabsNZ/ace-contracts-audit#readme"
+}
