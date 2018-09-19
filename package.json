@@ -7,11 +7,16 @@
     "test": "test"
   },
   "dependencies": {
-    "truffle": "^4.1.14"
+    "ethereumjs-testrpc": "^6.0.3",
+    "truffle": "^4.1.14",
+    "web3": "^0.20.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "solidity-coverage": "^0.5.11"
+  },
   "scripts": {
-    "test": "truffle test"
+    "test": "truffle test",
+    "coverage": "./node_modules/.bin/solidity-coverage && cat coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
