@@ -2,7 +2,6 @@ let Ace = artifacts.require("Ace");
 
 const assertFail = require("./helpers/assertFail");
 var BN = web3.utils.BN;
-let original_ETH_balance;
 
 contract("Ace", function([owner, investor, investor2, vandal]) {
   let ace;
@@ -153,10 +152,7 @@ contract("Ace", function([owner, investor, investor2, vandal]) {
       assert.equal(await ace.tradable.call(), true);
       await ace.transfer(investor2, 100000000, { from: investor });
       assert.equal(await ace.balanceOf.call(investor2), 100000000);
-
     });
-
+    
   });
-
-
 });
