@@ -111,7 +111,7 @@ The audit report is focused on the following key areas - though this is not an e
 
 The developers demonstrated an understanding of Solidity and smart contract development. We took part in carefully reviewing all source code provided, including static, dynamic, and functional testing methodology. The developers responded well to our feedback and made most of the changes we suggested to the contracts.
 
-The owner of the contract does have a lot of control over the crowdsale as we noted in the observations section, but they are expecting to mitigate this through the use of a multisig contract to deploy the contract.
+As described in our obervations the owner of the contract maintains significant control over the smart contract, but they are expecting to mitigate this risk through the use of a multisig contract to deploy the contract.
 
 Overall we consider the resulting contracts following the audit feedback period adequate and have not identified any potential vulnerabilities. This contract has a low level risk of ETH and ACE being hacked or stolen from the inspected contracts.
 
