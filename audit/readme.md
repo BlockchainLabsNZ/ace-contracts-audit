@@ -48,6 +48,8 @@ The audit report is focused on the following key areas - though this is not an e
 ## Analysis
 
 - [Functional tests](functional-test-report.md)
+- [Dynamic analysis](dynamic-analysis.md)
+- [Test coverage](test-coverage.md)
 
 <br>
 
